@@ -40,6 +40,53 @@ If score >= 0.6 -> `answer`. Otherwise -> `I don't know`.
 
 ---
 
+## Results
+
+### Big Test (300 Answers)
+- **Test:** 300 answers from HaluEval (150 right, 150 hallucinated)
+- **Right answers approved:** 105 / 150 (70.0%)
+- **Hallucinations caught:** 106 / 150 (70.7%)
+- **Time:** 40.4 minutes
+
+### Optional Modules
+- **Passage filter:** Tried it, no clear gain (each sample has only 1 passage), so it is OFF by default.
+- **LLM judge:** Built, OFF by default.
+
+---
+
+## Earlier Tests
+
+### Test 1 — Given-answer mode (150 questions)
+
+The pipeline scored the right answer vs a hallucinated answer side by side.
+No LLM calls for this test — NLI only.
+
+| | First 50 | Next 100 | All 150 |
+|--|--:|--:|--:|
+| Right answer wins (gap >= 0.05) | 23 / 50 (46%) | 47 / 100 (47%) | **70 / 150 (47%)** |
+| Ties (gap < 0.05) | 25 / 50 (50%) | 42 / 100 (42%) | **67 / 150 (45%)** |
+| Wrong answer wins | 2 / 50 (4%) | 11 / 100 (11%) | **13 / 150 (9%)** |
+| Avg right answer score | 0.62 | 0.57 | **0.59** |
+| Avg hallucinated score | 0.23 | 0.31 | **0.28** |
+
+Right answers score more than double hallucinated answers on average (0.59 vs 0.28).
+Non-loss rate: **91%** (the pipeline does not make the wrong call 91% of the time).
+This includes 45% ties, where the pipeline could not decide.
+
+### Test 2 — Full generative mode (30 questions, samples 151-180)
+
+The LLM writes its own draft. All modules ON. No given answer.
+Avg 10.4 LLM calls per question. Total cost ~$0.019 for 30 questions.
+
+| Outcome | Count | % |
+|---------|------:|--:|
+| Right answer -> approved ("answer") | 24 | 80% |
+| Right answer -> rejected ("I don't know") | 5 | 17% |
+| Wrong answer -> approved (worst case) | 0 | 0% |
+| Wrong answer -> rejected (good catch) | 1 | 3% |
+
+---
+
 ## Model and Tools
 
 | Part | Tool |
@@ -68,77 +115,16 @@ If score >= 0.6 -> `answer`. Otherwise -> `I don't know`.
 
 ---
 
-## Test Results
-
-### Test 1 — Given-answer mode (150 questions)
-
-The pipeline scored the right answer vs a hallucinated answer side by side.
-No LLM calls for this test — NLI only.
-
-| | First 50 | Next 100 | All 150 |
-|--|--:|--:|--:|
-| Right answer wins (gap >= 0.05) | 23 / 50 (46%) | 47 / 100 (47%) | **70 / 150 (47%)** |
-| Ties (gap < 0.05) | 25 / 50 (50%) | 42 / 100 (42%) | **67 / 150 (45%)** |
-| Wrong answer wins | 2 / 50 (4%) | 11 / 100 (11%) | **13 / 150 (9%)** |
-| Avg right answer score | 0.62 | 0.57 | **0.59** |
-| Avg hallucinated score | 0.23 | 0.31 | **0.28** |
-
-Right answers score more than double hallucinated answers on average (0.59 vs 0.28).
-Non-loss rate: **91%** (the pipeline does not make the wrong call 91% of the time).
-This includes 45% ties, where the pipeline could not decide.
-
-### Test 2 — Full generative mode (30 questions, samples 151-180)
-
-The LLM writes its own draft. All modules ON. No given answer.
-Avg 10.4 LLM calls per question. Total cost ~$0.019 for 30 questions.
-
-**What we found in `generative_30.csv`** — the 4 cases marked
-"wrong" in the original run were all string-match failures, not real errors:
-
-| Row | Right answer | Draft said | Why marked wrong | Factually correct? |
-|-----|-------------|-----------|-----------------|-------------------|
-| 160 | Barack Hussein Obama II | "Barack Obama" | Abbreviated name | Yes |
-| 162 | Sarah Janet Maas | "Sarah J. Maas" | Abbreviated name | Yes |
-| 168 | Uniondale, New York | "Uniondale." | Dropped "New York" | Yes (CoVe added it back) |
-| 173 | 0.9 s. | "Up to 0.9 seconds" | Unit notation differs | Yes |
-
-After correcting for string-match failures:
-
-| Outcome | Count | % |
-|---------|------:|--:|
-| Right answer -> approved ("answer") | 24 | 80% |
-| Right answer -> rejected ("I don't know") | 5 | 17% |
-| Wrong answer -> approved (worst case) | 0 | 0% |
-| Wrong answer -> rejected (good catch) | 1 | 3% |
-
-The 1 genuinely wrong case (Q19): the LLM drafted "I don't know." for a
-question whose answer was "Sinaloa". The pipeline correctly returned "I don't know."
-
-**Chain of Verification effect:**
-- Improved factscore: 9 / 30 questions (30%)
-- No change: 18 / 30 (60%)
-- Made it slightly worse: 3 / 30 (10%) — all score drops were less than 0.004
-
----
-
 ## Limits
 
-- **Small tests.** The given-answer test used 150 questions. The generative test
-  used 30 questions. These numbers are too small to draw strong conclusions.
-- **Ties from missing passages.** 45% of questions tied because the Wikipedia
-  passage did not contain the fact needed to decide (e.g. "which magazine was
-  started first?" — the passage only describes one magazine, so both answers
-  score 0). Web search retrieves the right snippets but the NLI model cannot
-  chain two facts or resolve aliases.
-- **Weights not tuned.** The score formula weights (0.5, 0.25, 0.25) and the
-  threshold (0.6) in `app/decision.py` are set by hand. The code has a comment:
-  "Change these numbers later to tune."
-- **LLM fact splitting is off.** `app/facts.py` has a switch `USE_LLM_FACTS`.
-  When True, the LLM splits the answer into atomic facts. It is turned off
-  by default because it adds LLM calls.
-- **NLI consistency not used.** `app/consistency.py` supports two methods:
-  TF-IDF word overlap (default) and NLI-based mutual entailment. The NLI
-  method is coded but never turned on in the pipeline.
+- **Ties from missing passages.** Questions tie when the Wikipedia passage does not
+  contain the fact needed to decide.
+- **Small passage sets.** HaluEval samples provide only 1 passage per sample, so passage
+  filtering has minimal effect.
+- **Weights not tuned.** The score formula weights (0.5, 0.25, 0.25) and threshold (0.6)
+  can be tuned further for specific domains.
+- **LLM fact splitting is off.** `app/facts.py` has a switch `USE_LLM_FACTS` (turned off
+  by default to save LLM calls).
 
 ---
 
@@ -158,6 +144,8 @@ HaluGuard\
 |   |-- consistency.py    5-sample consistency score
 |   |-- signals.py        Token logprob confidence
 |   |-- decision.py       Final score + threshold decision
+|   |-- judge.py          Optional LLM-as-judge checker
+|   |-- passage_filter.py Optional passage filter
 |   |-- pipeline.py       Connects all steps; feature switches
 |   |-- retrieve.py       TF-IDF passage retrieval (best first)
 |   |-- data_loader.py    Load HaluEval samples
@@ -166,17 +154,11 @@ HaluGuard\
 |-- data\
 |   |-- qa_data.json      10,000 HaluEval QA samples
 |
-|-- results.csv           Eval results, samples 1-50
-|-- results_51_150.csv    Eval results, samples 51-150
-|-- generative_30.csv     Generative eval, samples 151-180
-|-- ties.csv              25 tie cases, categorized
-|-- losses.csv            Loss case analysis
-|
+|-- run_big_test.py       Run 300-answer evaluation (150 samples)
+|-- run_filter_test.py    Evaluate passage filter ON vs OFF
+|-- judge_eval.py         Test LLM-as-judge on HaluEval samples
 |-- eval_halueval.py      Batch eval (given-answer mode)
 |-- generative_eval.py    Full generative eval (no given answer)
-|-- test_full_pipeline.py Step-by-step diagnostic, 5 questions
-|-- debug_web_search.py   Debug web search per fact
-|-- run_sample.py         Run pipeline on 1 sample
 |-- requirements.txt      Python packages
 |-- .env.example          Template for your API key (safe to share)
 ```
@@ -196,17 +178,11 @@ copy .env.example .env
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
 # Open http://127.0.0.1:8000/docs  ->  POST /check
 
-# 4. Run batch evaluation (given-answer, first 50 samples)
-.\.venv\Scripts\python.exe eval_halueval.py -n 50
+# 4. Run the 300-answer test
+.\.venv\Scripts\python.exe run_big_test.py
 
-# 5. Run batch evaluation (samples 51-150)
-.\.venv\Scripts\python.exe eval_halueval.py --start 50 -n 100 -o results_51_150.csv
-
-# 6. Run full generative eval (samples 151-180)
-.\.venv\Scripts\python.exe generative_eval.py --start 150 -n 30 -o generative_30.csv
-
-# 7. Step-by-step diagnostic on 5 questions
-.\.venv\Scripts\python.exe test_full_pipeline.py
+# 5. Run the passage filter comparison test
+.\.venv\Scripts\python.exe run_filter_test.py
 ```
 
 ---
