@@ -1,244 +1,165 @@
 # HaluGuard
 
-HaluGuard checks whether an LLM answer is trustworthy or a hallucination.
-It breaks the answer into small facts and checks each one against a passage
-and the web. If the answer is not supported, it says "I don't know."
+HaluGuard is a hallucination detection pipeline for large language models.
+It checks whether an LLM answer is factually supported by retrieved text and the web, falling back to "I don't know" when facts cannot be verified.
 
 ---
 
 ## How It Works
 
-```
-Question + passage
-       |
-  1. Need check  — Is this a factual question? (skip chit-chat)
-       |
-  2. Draft answer — LLM answers using only the passage
-       |
-  3. Chain of Verification (CoVe) — LLM checks its own facts and rewrites
-       |
-  4. Split into facts — break the answer into small sentences
-       |
-  5. NLI check — DeBERTa scores each fact vs the passage (0.0 to 1.0)
-       |
-  6. Web search — if NLI fails, search DuckDuckGo for more evidence
-       |
-  7. Consistency — ask the same question 5 times, measure agreement
-       |
-  8. Signal — read the model's own token confidence (logprobs)
-       |
-  9. Final score — weighted mix -> "answer" or "I don't know"
-```
-
-**Final score formula:**
+HaluGuard verifies answers through an 8-step pipeline:
 
 ```
-score = 0.5 x factscore + 0.25 x consistency + 0.25 x signal
+1. Passage Retrieval (RAG)
+   Finds relevant passages and places the best passage first.
+       |
+2. Draft Answer
+   The LLM generates an answer using only the retrieved passage.
+       |
+3. Small Facts
+   Breaks the drafted answer into individual atomic factual statements.
+       |
+4. Fact Check (NLI + Web)
+   DeBERTa scores each fact against the passage (0.0 to 1.0).
+   If evidence is missing, DuckDuckGo searches the web for snippets.
+       |
+5. Chain-of-Verification (CoVe)
+   Drafts verification questions, answers them independently, and rewrites.
+       |
+6. Consistency (Ask 5 Times)
+   Queries the question 5 times and measures agreement between answers.
+       |
+7. Confidence Signal
+   Extracts token-level log probabilities from the LLM.
+       |
+8. Final Score & Decision
+   Combines scores into a final weighted score:
+   Score = 0.50 x Fact + 0.25 x Consistency + 0.25 x Signal
+   If Score >= 0.60 -> "answer" (approved)
+   Otherwise        -> "I don't know" (rejected)
 ```
 
-If score >= 0.6 -> `answer`. Otherwise -> `I don't know`.
+**Optional Parts (OFF by default):**
+- **LLM-as-judge (`app/judge.py`):** An independent LLM fact-checker that demands word-for-word proof from the passage.
+- **Passage filter (`app/passage_filter.py`):** Drops irrelevant passages before answer drafting.
+
+---
+
+## Setup & Running
+
+- **LLM:** `Qwen/Qwen3-30B-A3B-Instruct-2507` hosted on Nebius Token Factory
+- **NLI Model:** `cross-encoder/nli-deberta-v3-base` (HuggingFace)
+- **Dataset:** HaluEval QA benchmark (10,000 question-knowledge pairs)
+- **Framework:** Python 3.12 with FastAPI
+
+### Installation
+
+```powershell
+# 1. Install dependencies
+pip install -r requirements.txt
+
+# 2. Copy the template and add your API key
+copy .env.example .env
+
+# 3. Start the FastAPI server
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
+```
+
+The API is accessible at `http://127.0.0.1:8000/docs` via `POST /check`.
+
+---
+
+## API Key Safety
+
+- All API keys are kept strictly inside `.env`.
+- `.env` is listed in `.gitignore` and is never committed to GitHub.
+- A public template `.env.example` is provided with fake placeholder values.
 
 ---
 
 ## Results
 
-### Big Test (300 Answers)
-- **Test:** 300 answers from HaluEval (150 right, 150 hallucinated)
+### 1. Main Pipeline Test (300 Answers)
+Tested on 150 HaluEval QA samples (150 right answers and 150 hallucinated answers) with default settings:
 - **Right answers approved:** 105 / 150 (70.0%)
 - **Hallucinations caught:** 106 / 150 (70.7%)
-- **Time:** 40.4 minutes
+- **Total run time:** 40.4 minutes
 
-### Optional Modules
-- **Passage filter:** Tried it, no clear gain (each sample has only 1 passage), so it is OFF by default.
-- **LLM judge:** Built, OFF by default.
+### 2. Passage Filter Test (30 Samples / 60 Answers)
+Tested with the passage filter turned OFF vs ON:
+- **Filter OFF:** 17 / 30 correct approved (56.7%), 24 / 30 hallucinations caught (80.0%)
+- **Filter ON:** 20 / 30 correct approved (66.7%), 21 / 30 hallucinations caught (70.0%)
+- **Decision:** Kept **OFF** by default (each HaluEval sample has only 1 knowledge passage, so filtering gave no clear gain).
 
----
+### 3. LLM-as-a-Judge Test (30 Samples in `judge_30.csv`)
+Evaluated standalone on 30 sample pairs with exact word-for-word proof extraction:
+- **Right answers approved (SUPPORTED):** 24 / 30 (80.0%)
+- **Hallucinations caught (NOT SUPPORTED):** 26 / 30 (86.7%)
+- **Both answers correct for sample:** 21 / 30 (70.0%)
+- **Status:** Built in `app/judge.py`, kept **OFF** by default in the main pipeline.
 
-## Earlier Tests
-
-### Test 1 — Given-answer mode (150 questions)
-
-The pipeline scored the right answer vs a hallucinated answer side by side.
-No LLM calls for this test — NLI only.
-
-| | First 50 | Next 100 | All 150 |
-|--|--:|--:|--:|
-| Right answer wins (gap >= 0.05) | 23 / 50 (46%) | 47 / 100 (47%) | **70 / 150 (47%)** |
-| Ties (gap < 0.05) | 25 / 50 (50%) | 42 / 100 (42%) | **67 / 150 (45%)** |
-| Wrong answer wins | 2 / 50 (4%) | 11 / 100 (11%) | **13 / 150 (9%)** |
-| Avg right answer score | 0.62 | 0.57 | **0.59** |
-| Avg hallucinated score | 0.23 | 0.31 | **0.28** |
-
-Right answers score more than double hallucinated answers on average (0.59 vs 0.28).
-Non-loss rate: **91%** (the pipeline does not make the wrong call 91% of the time).
-This includes 45% ties, where the pipeline could not decide.
-
-### Test 2 — Full generative mode (30 questions, samples 151-180)
-
-The LLM writes its own draft. All modules ON. No given answer.
-Avg 10.4 LLM calls per question. Total cost ~$0.019 for 30 questions.
-
-| Outcome | Count | % |
-|---------|------:|--:|
-| Right answer -> approved ("answer") | 24 | 80% |
-| Right answer -> rejected ("I don't know") | 5 | 17% |
-| Wrong answer -> approved (worst case) | 0 | 0% |
-| Wrong answer -> rejected (good catch) | 1 | 3% |
-
----
-
-## Model and Tools
-
-| Part | Tool |
-|------|------|
-| LLM | Qwen/Qwen3-30B-A3B-Instruct-2507 via Nebius AI |
-| NLI checker | cross-encoder/nli-deberta-v3-base (HuggingFace, ~738 MB) |
-| Web search | DuckDuckGo (free, no key needed) |
-| API | FastAPI |
-
----
-
-## Extra Features
-
-- **IDK skip:** If the LLM says "I don't know" as its draft, skip CoVe,
-  consistency and signals entirely. Saves ~6 LLM calls per question.
-- **Short answer rewrite:** If the answer is under 5 words (e.g. "Richard Nixon"),
-  the LLM rewrites it into a full sentence so NLI can check it properly.
-- **Soft FactScore:** Instead of counting "supported / not supported", average the
-  raw entailment probabilities (0.0-1.0) for a smoother score.
-- **Joined passages:** Combine all retrieved passages into one NLI input so short
-  passages do not cause false negatives.
-- **Enriched web query:** Add entity names from the question and passage to the
-  search query so results are about the right person or topic.
-- **Real logprobs:** Nebius returns real token probabilities for "True/False". The
-  signal score uses these instead of the 0.5 fallback.
+### 4. Score Weight Tuning
+- **On 30 samples (`scores_30.csv`):**
+  - Current weights (`0.50 / 0.25 / 0.25`, cutoff `0.60`): 41 / 60 correct decisions (68.3%)
+  - Best tuned mix (`0.40 / 0.30 / 0.30`, cutoff `0.45`): 46 / 60 correct decisions (76.7%)
+- **Validation on 50 new samples (100 answers in `scores_100.csv`):**
+  - Current mix (`0.50 / 0.25 / 0.25`, cutoff `0.60`): 73 / 100 (73.0% accuracy, 70.0% hallucinations caught)
+  - Mix A (`0.40 / 0.30 / 0.30`, cutoff `0.45`): 75 / 100 (75.0% accuracy, 58.0% hallucinations caught)
+  - Mix B (`0.70 / 0.10 / 0.20`, cutoff `0.30`): 74 / 100 (74.0% accuracy, 60.0% hallucinations caught)
+- **Decision:** The accuracy gain was small (+2%) and Mix A caught significantly fewer hallucinations (58% vs 70%). Current weights were kept to maintain the strongest protection against hallucinations.
 
 ---
 
 ## Limits
 
-- **Ties from missing passages.** Questions tie when the Wikipedia passage does not
-  contain the fact needed to decide.
-- **Small passage sets.** HaluEval samples provide only 1 passage per sample, so passage
-  filtering has minimal effect.
-- **Weights not tuned.** The score formula weights (0.5, 0.25, 0.25) and threshold (0.6)
-  can be tuned further for specific domains.
-- **LLM fact splitting is off.** `app/facts.py` has a switch `USE_LLM_FACTS` (turned off
-  by default to save LLM calls).
+- **~70% Accuracy:** The system is not perfect and still allows some hallucinations through or rejects difficult true facts.
+- **Single Benchmark:** Evaluated exclusively on HaluEval QA; performance may differ on open-ended generation.
+- **Latency:** Verifying an answer takes ~8 seconds due to multiple model calls and local NLI inferences.
+- **Model Dependent:** Quality of verification questions, self-checks, and drafts depends on the underlying model.
+- **Basic Web Search:** Web fallback relies on plain DuckDuckGo text snippets without complex multi-hop reasoning.
+- **Small Test Sets:** Tuning and feature checks were evaluated on subsets (30 to 150 questions).
+- **CoVe Skip Incomplete:** Skipping CoVe automatically when an answer drafts as "I don't know" is not fully finalized across every branch.
 
 ---
 
-## Folder Structure
+## Project Files
 
-```
-HaluGuard\
-|
-|-- app\
-|   |-- llm.py            LLM client (Nebius / NVIDIA / Grok)
-|   |-- answer.py         Draft answer from passages
-|   |-- facts.py          Split answer into atomic facts
-|   |-- verify.py         NLI fact checker (DeBERTa)
-|   |-- need_check.py     Is this a factual question?
-|   |-- cove.py           Chain of Verification
-|   |-- web_search.py     DuckDuckGo fallback search
-|   |-- consistency.py    5-sample consistency score
-|   |-- signals.py        Token logprob confidence
-|   |-- decision.py       Final score + threshold decision
-|   |-- judge.py          Optional LLM-as-judge checker
-|   |-- passage_filter.py Optional passage filter
-|   |-- pipeline.py       Connects all steps; feature switches
-|   |-- retrieve.py       TF-IDF passage retrieval (best first)
-|   |-- data_loader.py    Load HaluEval samples
-|   |-- main.py           FastAPI POST /check endpoint
-|
-|-- data\
-|   |-- qa_data.json      10,000 HaluEval QA samples
-|
-|-- run_big_test.py       Run 300-answer evaluation (150 samples)
-|-- run_filter_test.py    Evaluate passage filter ON vs OFF
-|-- judge_eval.py         Test LLM-as-judge on HaluEval samples
-|-- eval_halueval.py      Batch eval (given-answer mode)
-|-- generative_eval.py    Full generative eval (no given answer)
-|-- requirements.txt      Python packages
-|-- .env.example          Template for your API key (safe to share)
-```
-
----
-
-## Install and Run
-
-```powershell
-# 1. Install packages (only needed once)
-pip install -r requirements.txt
-
-# 2. Copy .env.example to .env and fill in your key
-copy .env.example .env
-
-# 3. Start the API server
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
-# Open http://127.0.0.1:8000/docs  ->  POST /check
-
-# 4. Run the 300-answer test
-.\.venv\Scripts\python.exe run_big_test.py
-
-# 5. Run the passage filter comparison test
-.\.venv\Scripts\python.exe run_filter_test.py
-```
-
----
-
-## API Usage
-
-Send a POST request to `/check`:
-
-```json
-{
-  "question": "Who wrote Hamlet?",
-  "passages": ["Hamlet is a play written by William Shakespeare."],
-  "given_answer": "William Shakespeare"
-}
-```
-
-Response:
-
-```json
-{
-  "decision": "answer",
-  "factscore": 0.97,
-  "consistency": 1.0,
-  "signal": 0.95,
-  "final_score": 0.97
-}
-```
-
-Leave out `given_answer` to let HaluGuard write and check its own answer.
-
----
-
-## Keep Your API Key Private
-
-**Never upload `.env` to GitHub.** It contains your Nebius API key.
-
-The `.gitignore` file in this repo already excludes it:
-
-```
-.env
-```
-
-Use `.env.example` as a safe template with empty values.
+| File | Purpose |
+| :--- | :--- |
+| `app/main.py` | FastAPI application and `POST /check` endpoint |
+| `app/pipeline.py` | Full 8-step verification pipeline and configuration toggles |
+| `app/llm.py` | Unified LLM client for Nebius Token Factory |
+| `app/retrieve.py` | TF-IDF passage retrieval and ranking (best passage first) |
+| `app/answer.py` | Initial answer generation from retrieved passages |
+| `app/facts.py` | Splits generated text into atomic factual statements |
+| `app/verify.py` | Local DeBERTa cross-encoder NLI verification |
+| `app/web_search.py` | DuckDuckGo search fallback for missing evidence |
+| `app/cove.py` | Chain-of-Verification implementation |
+| `app/consistency.py` | 5-sample self-consistency score |
+| `app/signals.py` | Token confidence logprob extractor |
+| `app/decision.py` | Scoring formula and threshold decision logic |
+| `app/judge.py` | Optional LLM-as-judge with exact proof extraction |
+| `app/passage_filter.py` | Optional passage relevance filter |
+| `app/data_loader.py` | Parser for HaluEval QA samples |
+| `run_big_test.py` | Runs 300-answer evaluation benchmark |
+| `run_filter_test.py` | Evaluates passage filter ON vs OFF |
+| `tune_weights.py` | Grid-search optimizer for scoring weights |
+| `compare_mixes.py` | Compares weight configurations without model calls |
+| `requirements.txt` | Python package dependencies |
+| `.env.example` | Template for environment variables (safe to share) |
 
 ---
 
 ## References
 
-These papers directly shaped the code. Each one is listed only if its idea
-is actually in the code.
+The architecture and techniques in HaluGuard are based on these publications:
 
-| Paper | Where it is used |
-|-------|-----------------|
-| Dhuliawala et al. (2023). *Chain-of-Verification Reduces Hallucination in Large Language Models.* | `app/cove.py` — generates check questions, answers them separately, rewrites the draft |
-| Min et al. (2023). *FActScore: Fine-grained Atomic Evaluation of Factual Precision in Long Form Text Generation.* | `app/facts.py` + `app/verify.py` — splits answer into atomic facts, checks each with NLI |
-| Asai et al. (2023). *Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection.* | `app/need_check.py` — the LLM decides whether retrieval is needed (YES/NO), matching the Self-RAG retrieval decision token |
-| Liu et al. (2023). *Lost in the Middle: How Language Models Use Long Contexts.* | `app/retrieve.py` — ranks passages by TF-IDF and keeps the best passage first so the most relevant text is at the start of the context |
-| Manakul et al. (2023). *SelfCheckGPT: Zero-Resource Black-Box Hallucination Detection for Generative Large Language Models.* | `app/consistency.py` — asks the same question 5 times and measures agreement between answers |
-| Li et al. (2023). *HaluEval: A Large-Scale Hallucination Evaluation Benchmark for Large Language Models.* | `data/qa_data.json` — the 10,000-question dataset used for all tests |
+1. **Lewis, P. et al. (2020).** *Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks.* NeurIPS 2020. (Foundational RAG framework)
+2. **Li, J. et al. (2023).** *HaluEval: A Large-Scale Hallucination Evaluation Benchmark for Large Language Models.* EMNLP 2023. (Evaluation dataset and methodology)
+3. **Dhuliawala, S. et al. (2023).** *Chain-of-Verification Reduces Hallucination in Large Language Models.* arXiv:2309.11495. (`app/cove.py`)
+4. **Min, S. et al. (2023).** *FActScore: Fine-grained Atomic Evaluation of Factual Precision in Long Form Text Generation.* EMNLP 2023. (`app/facts.py` and `app/verify.py`)
+5. **Liu, N. F. et al. (2024).** *Lost in the Middle: How Language Models Use Long Contexts.* TACL 2024. (`app/retrieve.py` best-first ranking)
+6. **Asai, A. et al. (2023).** *Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection.* ICLR 2024. (`app/need_check.py` retrieval filtering)
+7. **Manakul, P. et al. (2023).** *SelfCheckGPT: Zero-Resource Black-Box Hallucination Detection for Generative Large Language Models.* EMNLP 2023. (`app/consistency.py`)
+8. **Orgad, H. et al. (2024).** *LLMs Know More Than They Show: On the Intrinsic Representation of Truth.* arXiv:2410.02707. (`app/signals.py` token confidence)
+9. **Zheng, L. et al. (2023).** *Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena.* NeurIPS 2023. (`app/judge.py`)
