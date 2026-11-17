@@ -3,6 +3,10 @@
 HaluGuard is a hallucination detection pipeline for large language models.
 It checks whether an LLM answer is factually supported by retrieved text and the web, falling back to "I don't know" when facts cannot be verified.
 
+The pipeline makes only **two decisions**:
+- `"answer"`: The answer passed verification and is **approved** to show to the user.
+- `"I don't know"`: The answer failed verification and is **rejected** (suppressed).
+
 ---
 
 ## How It Works
@@ -20,8 +24,8 @@ HaluGuard verifies answers through an 8-step pipeline:
    Breaks the drafted answer into individual atomic factual statements.
        |
 4. Fact Check (NLI + Web)
-   DeBERTa scores each fact against the passage (0.0 to 1.0).
-   If evidence is missing, DuckDuckGo searches the web for snippets.
+   Checks each fact against the passage using a local NLI model.
+   If evidence is missing, searches the web for snippets.
        |
 5. Chain-of-Verification (CoVe)
    Drafts verification questions, answers them independently, and rewrites.
@@ -42,15 +46,16 @@ HaluGuard verifies answers through an 8-step pipeline:
 **Optional Parts (OFF by default):**
 - **LLM-as-judge (`app/judge.py`):** An independent LLM fact-checker that demands word-for-word proof from the passage.
 - **Passage filter (`app/passage_filter.py`):** Drops irrelevant passages before answer drafting.
+- **Semantic entropy (`app/semantic_entropy.py`):** Groups sampled answers by meaning on doubtful claims.
 
 ---
 
 ## Setup & Running
 
-- **LLM:** `Qwen/Qwen3-30B-A3B-Instruct-2507` hosted on Nebius Token Factory
-- **NLI Model:** `cross-encoder/nli-deberta-v3-base` (HuggingFace)
-- **Dataset:** HaluEval QA benchmark (10,000 question-knowledge pairs)
-- **Framework:** Python 3.12 with FastAPI
+- **LLM:** `Qwen/Qwen3-30B-A3B-Instruct-2507` hosted on Nebius Token Factory (`app/llm.py`).
+- **NLI Fact-Check Model:** `cross-encoder/nli-deberta-v3-base` from Hugging Face (`app/verify.py`). It runs locally using the Hugging Face `transformers` pipeline to check whether retrieved passages entail each atomic claim.
+- **Dataset:** HaluEval QA benchmark (question-knowledge pairs).
+- **Framework:** Python 3.12 with FastAPI.
 
 ### Installation
 
@@ -77,15 +82,28 @@ The API is accessible at `http://127.0.0.1:8000/docs` via `POST /check`.
 
 ---
 
+## Two Numbers Report
+
+What happens to the hallucination rate when HaluGuard filters the answers?
+
+- **Big test (300 answers):** The hallucination rate among approved answers dropped from **50.0% to 29.5%** (44 hallucinations among 149 approved answers). The system decided "I don't know" on **151 of 300** answers (106 hallucinations caught + 45 right answers lost).
+- **Two smaller tests (100 answers each):**
+  - First 100-answer test (`scores_100.csv`): Hallucination rate among approved answers dropped from **50.0% to 28.3%** (15 of 53 approved were hallucinations).
+  - Second 100-answer test (`semantic_entropy_100.csv`): Hallucination rate among approved answers dropped from **50.0% to 31.9%** (15 of 47 approved were hallucinations).
+- **Why was the starting rate 50.0%?** The "Before 50%" rate comes from the evaluation benchmark being balanced: exactly half right answers and half hallucinated answers.
+- **The cost of protection:** About 30% of correct answers are lost because HaluGuard marks them as "I don't know".
+
+---
+
 ## Results
 
-### 1. Main Pipeline Test (300 Answers)
+### 1. Main Pipeline Test (300 Answers in `big_test.csv`)
 Tested on 150 HaluEval QA samples (150 right answers and 150 hallucinated answers) with default settings:
 - **Right answers approved:** 105 / 150 (70.0%)
 - **Hallucinations caught:** 106 / 150 (70.7%)
 - **Total run time:** 40.4 minutes
 
-### 2. Passage Filter Test (30 Samples / 60 Answers)
+### 2. Passage Filter Test (30 Samples in `filter_on.csv` vs `filter_off.csv`)
 Tested with the passage filter turned OFF vs ON:
 - **Filter OFF:** 17 / 30 correct approved (56.7%), 24 / 30 hallucinations caught (80.0%)
 - **Filter ON:** 20 / 30 correct approved (66.7%), 21 / 30 hallucinations caught (70.0%)
@@ -93,8 +111,8 @@ Tested with the passage filter turned OFF vs ON:
 
 ### 3. LLM-as-a-Judge Test (30 Samples in `judge_30.csv`)
 Evaluated standalone on 30 sample pairs with exact word-for-word proof extraction:
-- **Right answers approved (SUPPORTED):** 24 / 30 (80.0%)
-- **Hallucinations caught (NOT SUPPORTED):** 26 / 30 (86.7%)
+- **Right answers approved:** 24 / 30 (80.0%)
+- **Hallucinations caught:** 26 / 30 (86.7%)
 - **Both answers correct for sample:** 21 / 30 (70.0%)
 - **Status:** Built in `app/judge.py`, kept **OFF** by default in the main pipeline.
 
@@ -106,13 +124,20 @@ Evaluated standalone on 30 sample pairs with exact word-for-word proof extractio
   - Current mix (`0.50 / 0.25 / 0.25`, cutoff `0.60`): 73 / 100 (73.0% accuracy, 70.0% hallucinations caught)
   - Mix A (`0.40 / 0.30 / 0.30`, cutoff `0.45`): 75 / 100 (75.0% accuracy, 58.0% hallucinations caught)
   - Mix B (`0.70 / 0.10 / 0.20`, cutoff `0.30`): 74 / 100 (74.0% accuracy, 60.0% hallucinations caught)
-- **Decision:** The accuracy gain was small (+2%) and Mix A caught significantly fewer hallucinations (58% vs 70%). Current weights were kept to maintain the strongest protection against hallucinations.
+- **Decision:** The accuracy gain was small (+2%) and Mix A caught fewer hallucinations (58% vs 70%). Current weights were kept to maintain the strongest protection against hallucinations.
+
+### 5. Semantic Entropy Test (50 Samples / 100 Answers in `semantic_entropy_100.csv`)
+Tested semantic entropy clustering on 100 answers:
+- **AUROC separation:** Old consistency scored **0.5100** vs semantic entropy scored **0.5092** (neither separates better than random guessing on this benchmark).
+- **Doubtful claims:** Only 3 of 100 answers fell in the doubtful zone (fact score between 0.3 and 0.7).
+- **Decisions:** Exactly 0 decisions changed.
+- **Decision:** Kept **OFF** by default in `app/pipeline.py`.
 
 ---
 
 ## Limits
 
-- **~70% Accuracy:** The system is not perfect and still allows some hallucinations through or rejects difficult true facts.
+- **~70% Accuracy:** The system is not perfect and still allows about 29% to 32% of approved answers to be hallucinations, or rejects difficult true facts.
 - **Single Benchmark:** Evaluated exclusively on HaluEval QA; performance may differ on open-ended generation.
 - **Latency:** Verifying an answer takes ~8 seconds due to multiple model calls and local NLI inferences.
 - **Model Dependent:** Quality of verification questions, self-checks, and drafts depends on the underlying model.
@@ -140,9 +165,12 @@ Evaluated standalone on 30 sample pairs with exact word-for-word proof extractio
 | `app/decision.py` | Scoring formula and threshold decision logic |
 | `app/judge.py` | Optional LLM-as-judge with exact proof extraction |
 | `app/passage_filter.py` | Optional passage relevance filter |
+| `app/semantic_entropy.py` | Optional semantic entropy clustering module |
 | `app/data_loader.py` | Parser for HaluEval QA samples |
 | `run_big_test.py` | Runs 300-answer evaluation benchmark |
 | `run_filter_test.py` | Evaluates passage filter ON vs OFF |
+| `run_semantic_entropy_eval.py` | Evaluates semantic entropy on 100 answers |
+| `report_two_numbers.md` | Detailed breakdown of before vs after hallucination rates |
 | `tune_weights.py` | Grid-search optimizer for scoring weights |
 | `compare_mixes.py` | Compares weight configurations without model calls |
 | `requirements.txt` | Python package dependencies |

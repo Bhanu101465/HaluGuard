@@ -1,0 +1,61 @@
+sample_id,label,question,answer,fact_check_score,consistency_score,cove_score,web_check_score,signal_score,final_score
+1,right,Which magazine was started first Arthur's Magazine or First for Women?,Arthur's Magazine,0.01,1.0,0.0,0.0,1.0,0.51
+1,hallucinated,Which magazine was started first Arthur's Magazine or First for Women?,First for Women was started first.,0.0,1.0,0.0,0.0,0.0,0.25
+2,right,The Oberoi family is part of a hotel company that has a head office in what city?,Delhi,1.0,1.0,0.0,0.0,0.98,0.99
+2,hallucinated,The Oberoi family is part of a hotel company that has a head office in what city?,The Oberoi family's hotel company is based in Mumbai.,0.0,1.0,0.0,0.0,1.0,0.5
+3,right,"Musician and satirist Allie Goertz wrote a song about the ""The Simpsons"" character Milhouse, who Matt Groening named after who?",President Richard Nixon,0.99,1.0,0.0,0.0,0.0,0.74
+3,hallucinated,"Musician and satirist Allie Goertz wrote a song about the ""The Simpsons"" character Milhouse, who Matt Groening named after who?","Allie Goertz wrote a song about Milhouse, a popular TV character, named after an influential political figure.",0.99,1.0,0.0,0.0,0.0,0.74
+4,right, What nationality was James Henry Miller's wife?,American,0.0,1.0,0.0,0.0,0.15,0.29
+4,hallucinated, What nationality was James Henry Miller's wife?,James Henry Miller's wife was British.,0.0,1.0,0.0,0.0,0.03,0.26
+5,right,"Cadmium Chloride is slightly soluble in this chemical, it is also called what?",alcohol,0.53,1.0,0.0,0.0,1.0,0.77
+5,hallucinated,"Cadmium Chloride is slightly soluble in this chemical, it is also called what?",water with a hint of alcohol,0.09,1.0,0.0,0.0,0.0,0.29
+6,right,"Which tennis player won more Grand Slam titles, Henri Leconte or Jonathan Stark?",Jonathan Stark,0.0,1.0,0.0,0.0,0.0,0.25
+6,hallucinated,"Which tennis player won more Grand Slam titles, Henri Leconte or Jonathan Stark?",Henri Leconte won more Grand Slam titles.,0.0,1.0,0.0,0.0,0.0,0.25
+7,right,Which genus of moth in the world's seventh-largest country contains only one species?,Crambidae,0.98,1.0,0.0,0.0,0.0,0.74
+7,hallucinated,Which genus of moth in the world's seventh-largest country contains only one species?,The Indogrammodes genus of moths found in India has only one species.,1.0,1.0,0.0,0.0,0.0,0.75
+8,right,"Who was once considered the best kick boxer in the world, however he has been involved in a number of controversies relating to his ""unsportsmanlike conducts"" in the sport and crimes of violence outside of the ring.",Badr Hari,1.0,1.0,0.0,0.0,1.0,1.0
+8,hallucinated,"Who was once considered the best kick boxer in the world, however he has been involved in a number of controversies relating to his ""unsportsmanlike conducts"" in the sport and crimes of violence outside of the ring.",Badr Hari is a notorious kickboxer.,0.99,1.0,0.0,0.0,1.0,0.99
+9,right,"The Dutch-Belgian television series that ""House of Anubis"" was based on first aired in what year?",2006,1.0,1.0,0.0,0.0,1.0,1.0
+9,hallucinated,"The Dutch-Belgian television series that ""House of Anubis"" was based on first aired in what year?","The inspiration for ""House of Anubis"" first aired in 2003.",0.01,1.0,0.0,0.0,1.0,0.51
+10,right,What is the length of the track where the 2013 Liqui Moly Bathurst 12 Hour was staged?,6.213 km long,1.0,1.0,0.0,0.0,1.0,1.0
+10,hallucinated,What is the length of the track where the 2013 Liqui Moly Bathurst 12 Hour was staged?,The Mount Panorama Circuit track is longer than 7 km.,0.1,1.0,0.0,0.0,0.62,0.45
+11,right,"Fast Cars, Danger, Fire and Knives includes guest appearances from which hip hop record executive?",Jaime Meline,0.54,1.0,0.0,0.0,0.02,0.53
+11,hallucinated,"Fast Cars, Danger, Fire and Knives includes guest appearances from which hip hop record executive?","Fast Cars, Danger, Fire and Knives includes guest appearances from Russell Simmons.",0.0,1.0,0.0,0.0,0.0,0.25
+12,right,"Gunmen from Laredo starred which narrator of ""Frontier""?",Walter Darwin Coy,0.99,1.0,0.0,0.0,0.27,0.81
+12,hallucinated,"Gunmen from Laredo starred which narrator of ""Frontier""?","Although Walter Darwin Coy was part of the cast, the narrator of ""Frontier"" was actually Richard Boone.",0.0,1.0,0.0,0.0,0.0,0.25
+13,right,Where did the form of music played by Die Rhöner Säuwäntzt originate?,United States,1.0,1.0,0.0,0.0,0.0,0.75
+13,hallucinated,Where did the form of music played by Die Rhöner Säuwäntzt originate?,The form of music played by Die Rhöner Säuwäntzt originated in the United Kingdom,0.0,1.0,0.0,0.0,0.0,0.25
+14,right,In which American football game was Malcolm Smith named Most Valuable player?,Super Bowl XLVIII,0.01,1.0,0.0,0.0,1.0,0.51
+14,hallucinated,In which American football game was Malcolm Smith named Most Valuable player?,Malcolm Smith was named Most Valuable Player of the Pro Bowl 2013.,0.03,1.0,0.0,0.0,0.0,0.27
+15,right,"What U.S Highway gives access to Zilpo Road, and is also known as Midland Trail?",US 60,0.01,1.0,0.0,0.0,1.0,0.51
+15,hallucinated,"What U.S Highway gives access to Zilpo Road, and is also known as Midland Trail?","It's actually Zilpo Road that is known as Midland Trail, not US 60.",0.0,1.0,0.0,0.0,0.0,0.25
+16,right,"The 1988 American comedy film, The Great Outdoors, starred a four-time Academy Award nominee, who received a star on the Hollywood Walk of Fame in what year?",2006,1.0,1.0,0.0,0.0,0.92,0.98
+16,hallucinated,"The 1988 American comedy film, The Great Outdoors, starred a four-time Academy Award nominee, who received a star on the Hollywood Walk of Fame in what year?",Annette Bening received her Hollywood star in 1988.,0.01,1.0,0.0,0.0,0.0,0.26
+17,right,What are the names of the current members of  American heavy metal band who wrote the music for  Hurt Locker The Musical? ,"Hetfield and Ulrich, longtime lead guitarist Kirk Hammett, and bassist Robert Trujillo.",0.99,1.0,0.0,0.0,0.0,0.74
+17,hallucinated,What are the names of the current members of  American heavy metal band who wrote the music for  Hurt Locker The Musical? ,"Lars, Hammett, Burton, Ulrich and Mustaine.",0.01,0.82,0.0,0.0,0.0,0.21
+18,right,"Human Error"" is the season finale of the third season of a tv show that aired on what network?",Fox,1.0,1.0,0.0,0.0,0.68,0.92
+18,hallucinated,"Human Error"" is the season finale of the third season of a tv show that aired on what network?","""Human Error"" was actually the season finale of the fourth season of ""House"" and aired on NBC.",0.0,1.0,0.0,0.0,0.0,0.25
+19,right,"Dua Lipa, an English singer, songwriter and model, the album spawned the number-one single ""New Rules"" is a song by English singer Dua Lipa from her eponymous debut studio album, released in what year?",2017,1.0,1.0,0.0,0.0,0.5,1.0
+19,hallucinated,"Dua Lipa, an English singer, songwriter and model, the album spawned the number-one single ""New Rules"" is a song by English singer Dua Lipa from her eponymous debut studio album, released in what year?",The album was released in 2018.,1.0,1.0,0.0,0.0,0.5,1.0
+20,right,"American politician Joe Heck ran unsuccessfully against Democrat Catherine Cortez Masto, a woman who previously served as the 32nd Attorney General of where?",Nevada,1.0,1.0,0.0,0.0,1.0,1.0
+20,hallucinated,"American politician Joe Heck ran unsuccessfully against Democrat Catherine Cortez Masto, a woman who previously served as the 32nd Attorney General of where?",Cortez Masto was the 32nd Attorney General of Wyoming.,0.0,1.0,0.0,0.0,0.0,0.25
+21,right,"Which state does the drug stores, of which the CEO is Warren Bryant, are located?",Hawaii,0.02,1.0,0.0,0.0,0.5,0.39
+21,hallucinated,"Which state does the drug stores, of which the CEO is Warren Bryant, are located?",The drug stores in which Warren Bryant was the CEO are located in Utah.,0.0,1.0,0.0,0.0,0.5,0.38
+22,right,Which  American politician did Donahue replaced ,Kelli Ward,0.98,1.0,0.0,0.0,0.5,0.86
+22,hallucinated,Which  American politician did Donahue replaced ,Donahue replaced Kelli Ward's position.,0.99,1.0,0.0,0.0,0.5,0.87
+23,right,"Which band was founded first, Hole, the rock band that Courtney Love was a frontwoman of, or The Wolfhounds?",The Wolfhounds,0.94,1.0,0.0,0.0,0.5,0.84
+23,hallucinated,"Which band was founded first, Hole, the rock band that Courtney Love was a frontwoman of, or The Wolfhounds?","Hole, the rock band that Courtney Love was a frontwoman of was founded first.",0.75,1.0,0.0,0.0,0.5,0.75
+24,right,How old is the female main protagonist of Catching Fire?,16-year-old,0.15,1.0,0.0,0.0,0.5,0.45
+24,hallucinated,How old is the female main protagonist of Catching Fire?,"17-year-old, just slightly older.",0.0,1.0,0.0,0.0,0.5,0.38
+25,right,Chang Ucchin was born in korea during a time that ended with the conclusion of what? ,World War II,0.04,1.0,0.0,0.0,0.5,0.4
+25,hallucinated,Chang Ucchin was born in korea during a time that ended with the conclusion of what? ,Chang was born before the war ended.,0.03,1.0,0.0,0.0,0.5,0.39
+26,right,Who is the director of the 2003 film which has scenes in it filmed at the Quality Cafe in Los Angeles?,Todd Phillips,0.01,1.0,0.0,0.0,0.5,0.38
+26,hallucinated,Who is the director of the 2003 film which has scenes in it filmed at the Quality Cafe in Los Angeles?,The director of the 2003 film featuring scenes at Quality Cafe is Kevin Phillips.,0.0,1.0,0.0,0.0,0.5,0.38
+27,right,"New Faces of 1952 is a musical revue with songs and comedy skits, it helped jump start the career of which young performer, and American actress?",Carol Lawrence,0.0,1.0,0.0,0.0,0.5,0.38
+27,hallucinated,"New Faces of 1952 is a musical revue with songs and comedy skits, it helped jump start the career of which young performer, and American actress?","New Faces of 1952 was responsible for launching the careers of many young performers, including actress Carol Lawrence.",0.0,1.0,0.0,0.0,0.5,0.38
+28,right,Were Pavel Urysohn and Leonid Levin known for the same type of work?,no,0.0,1.0,0.0,0.0,0.5,0.38
+28,hallucinated,Were Pavel Urysohn and Leonid Levin known for the same type of work?,Pavel Urysohn and Leonid Levin collaborated on mathematical research.,0.0,1.0,0.0,0.0,0.5,0.38
+29,right,Are both The New Pornographers and Kings of Leon American rock bands?,no,0.01,1.0,0.0,0.0,0.5,0.38
+29,hallucinated,Are both The New Pornographers and Kings of Leon American rock bands?,"Yes, both The New Pornographers and Kings of Leon are now American rock bands.",0.0,1.0,0.0,0.0,0.5,0.38
+30,right,"750 7th Avenue and 101 Park Avenue, are located in which city?",New York City,0.93,1.0,0.0,0.0,0.5,0.84
+30,hallucinated,"750 7th Avenue and 101 Park Avenue, are located in which city?","750 7th Avenue and 101 Park Avenue are located in Albany, New York.",0.0,1.0,0.0,0.0,0.5,0.38

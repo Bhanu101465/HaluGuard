@@ -1,0 +1,101 @@
+sample_id,label,old_consistency_score,entropy_score,fact_score,final_score,decision_before,decision_after
+81,right,1.0,1.0,1.0,1.0,answer,answer
+81,hallucinated,1.0,1.0,0.0,0.49,I don't know,I don't know
+82,right,1.0,1.0,0.99,0.74,answer,answer
+82,hallucinated,1.0,1.0,0.0,0.25,I don't know,I don't know
+83,right,1.0,1.0,0.0,0.39,I don't know,I don't know
+83,hallucinated,1.0,1.0,1.0,0.98,answer,answer
+84,right,1.0,1.0,1.0,1.0,answer,answer
+84,hallucinated,1.0,1.0,0.0,0.38,I don't know,I don't know
+85,right,1.0,1.0,0.01,0.28,I don't know,I don't know
+85,hallucinated,1.0,1.0,0.06,0.28,I don't know,I don't know
+86,right,1.0,1.0,0.03,0.52,I don't know,I don't know
+86,hallucinated,1.0,1.0,0.96,0.73,answer,answer
+87,right,1.0,1.0,0.93,0.74,answer,answer
+87,hallucinated,1.0,1.0,0.0,0.25,I don't know,I don't know
+88,right,1.0,1.0,0.99,0.99,answer,answer
+88,hallucinated,1.0,1.0,0.01,0.26,I don't know,I don't know
+89,right,1.0,1.0,0.0,0.25,I don't know,I don't know
+89,hallucinated,1.0,1.0,0.0,0.25,I don't know,I don't know
+90,right,0.42,0.34,0.0,0.1,I don't know,I don't know
+90,hallucinated,0.43,0.58,0.0,0.33,I don't know,I don't know
+91,right,1.0,1.0,0.89,0.95,answer,answer
+91,hallucinated,1.0,1.0,0.94,0.72,answer,answer
+92,right,1.0,1.0,0.0,0.49,I don't know,I don't know
+92,hallucinated,1.0,1.0,0.0,0.25,I don't know,I don't know
+93,right,1.0,1.0,1.0,0.81,answer,answer
+93,hallucinated,1.0,1.0,0.01,0.46,I don't know,I don't know
+94,right,1.0,1.0,0.0,0.25,I don't know,I don't know
+94,hallucinated,1.0,1.0,0.01,0.26,I don't know,I don't know
+95,right,1.0,1.0,0.99,0.99,answer,answer
+95,hallucinated,1.0,1.0,0.0,0.49,I don't know,I don't know
+96,right,1.0,1.0,1.0,0.75,answer,answer
+96,hallucinated,1.0,1.0,0.0,0.25,I don't know,I don't know
+97,right,1.0,1.0,0.94,0.72,answer,answer
+97,hallucinated,0.6,0.69,0.09,0.2,I don't know,I don't know
+98,right,1.0,1.0,0.99,0.99,answer,answer
+98,hallucinated,1.0,1.0,0.0,0.25,I don't know,I don't know
+99,right,1.0,1.0,0.0,0.29,I don't know,I don't know
+99,hallucinated,1.0,1.0,0.0,0.25,I don't know,I don't know
+100,right,1.0,1.0,0.49,0.65,answer,answer
+100,hallucinated,1.0,1.0,0.02,0.26,I don't know,I don't know
+101,right,1.0,1.0,0.99,0.74,answer,answer
+101,hallucinated,1.0,1.0,0.0,0.5,I don't know,I don't know
+102,right,1.0,1.0,0.08,0.53,I don't know,I don't know
+102,hallucinated,1.0,1.0,0.9,0.72,answer,answer
+103,right,1.0,1.0,0.01,0.26,I don't know,I don't know
+103,hallucinated,1.0,1.0,0.0,0.25,I don't know,I don't know
+104,right,1.0,1.0,0.99,0.99,answer,answer
+104,hallucinated,1.0,1.0,0.49,0.49,I don't know,I don't know
+105,right,1.0,1.0,0.99,0.95,answer,answer
+105,hallucinated,1.0,1.0,0.98,0.76,answer,answer
+106,right,1.0,1.0,0.97,0.98,answer,answer
+106,hallucinated,1.0,1.0,0.92,0.71,answer,answer
+107,right,1.0,1.0,1.0,1.0,answer,answer
+107,hallucinated,1.0,1.0,1.0,1.0,answer,answer
+108,right,1.0,1.0,0.99,0.93,answer,answer
+108,hallucinated,1.0,1.0,0.99,0.74,answer,answer
+109,right,1.0,1.0,1.0,0.91,answer,answer
+109,hallucinated,1.0,1.0,0.97,0.73,answer,answer
+110,right,1.0,1.0,0.06,0.28,I don't know,I don't know
+110,hallucinated,1.0,1.0,0.0,0.25,I don't know,I don't know
+111,right,1.0,1.0,1.0,1.0,answer,answer
+111,hallucinated,1.0,1.0,0.99,0.74,answer,answer
+112,right,1.0,1.0,0.01,0.26,I don't know,I don't know
+112,hallucinated,1.0,1.0,0.06,0.28,I don't know,I don't know
+113,right,1.0,1.0,0.1,0.33,I don't know,I don't know
+113,hallucinated,1.0,1.0,0.01,0.26,I don't know,I don't know
+114,right,1.0,1.0,0.0,0.5,I don't know,I don't know
+114,hallucinated,1.0,1.0,0.0,0.25,I don't know,I don't know
+115,right,1.0,1.0,1.0,1.0,answer,answer
+115,hallucinated,1.0,1.0,0.0,0.25,I don't know,I don't know
+116,right,1.0,1.0,0.64,0.62,answer,answer
+116,hallucinated,1.0,1.0,0.0,0.25,I don't know,I don't know
+117,right,1.0,1.0,0.99,0.9,answer,answer
+117,hallucinated,1.0,1.0,0.97,0.81,answer,answer
+118,right,1.0,1.0,0.98,0.74,answer,answer
+118,hallucinated,1.0,1.0,0.0,0.25,I don't know,I don't know
+119,right,1.0,1.0,1.0,0.75,answer,answer
+119,hallucinated,1.0,1.0,0.05,0.28,I don't know,I don't know
+120,right,1.0,1.0,1.0,0.75,answer,answer
+120,hallucinated,1.0,1.0,0.99,0.74,answer,answer
+121,right,1.0,1.0,1.0,0.75,answer,answer
+121,hallucinated,1.0,1.0,0.0,0.26,I don't know,I don't know
+122,right,0.83,0.58,0.0,0.21,I don't know,I don't know
+122,hallucinated,0.78,0.58,0.0,0.2,I don't know,I don't know
+123,right,1.0,1.0,0.99,0.99,answer,answer
+123,hallucinated,1.0,1.0,0.0,0.25,I don't know,I don't know
+124,right,1.0,1.0,0.99,0.99,answer,answer
+124,hallucinated,1.0,1.0,0.97,0.98,answer,answer
+125,right,1.0,1.0,0.0,0.47,I don't know,I don't know
+125,hallucinated,1.0,1.0,0.0,0.47,I don't know,I don't know
+126,right,1.0,1.0,0.0,0.3,I don't know,I don't know
+126,hallucinated,1.0,1.0,0.01,0.26,I don't know,I don't know
+127,right,1.0,1.0,0.0,0.25,I don't know,I don't know
+127,hallucinated,1.0,1.0,0.01,0.26,I don't know,I don't know
+128,right,1.0,1.0,0.99,0.87,answer,answer
+128,hallucinated,1.0,1.0,0.24,0.48,I don't know,I don't know
+129,right,1.0,1.0,0.82,0.91,answer,answer
+129,hallucinated,1.0,1.0,0.87,0.69,answer,answer
+130,right,1.0,1.0,0.99,0.99,answer,answer
+130,hallucinated,1.0,1.0,0.83,0.67,answer,answer
